@@ -289,14 +289,15 @@ This objective function represents a Maximum A Posteriori (MAP) estimator for th
     \upsilon_{2t} & = \frac{2 \cdot \tau_{2t} \cdot \text{Trace}(\bm{X} \cdot [J_{\bm{\beta}}F(\hat{\bm{\beta}}_{2t})]^{-1} \cdot \bm{X}^\top)}{N},
     \end{split}
 \end{align}
-where $F:\mathbb{R}^P \to \mathbb{R}^P$ is the gradient of the objective function defined as
+where $F:\mathbb{R}^P \to \mathbb{R}^P$ is defined as
 
 \begin{align}
     \begin{split}
     F(\bm{\beta}) & = 2(\gamma_{2t}\bm{I} + \tau_{2t}\bm{X}^\top\bm{X})\bm{\beta} \\
-    & \quad + \alpha \bm{X}_\mathcal{C}^\top \exp\left(\alpha(\log(\bm{y}_\mathcal{C}) - \mu - \bm{X}_\mathcal{C} \bm{\beta})-K\right).
+    & \quad - \alpha \bm{X}_\mathcal{C}^\top \exp\left(\alpha(\log(\bm{y}_\mathcal{C}) - \mu - \bm{X}_\mathcal{C} \bm{\beta})-K\right),
     \end{split}
 \end{align}
+so that the minimizer $\hat{\bm{\beta}}_{2t}$ of \eqref{formula:cenosring_opt_problem} solves $F(\bm{\beta}) = 2 \gamma_{2t} \bm{r}_{2t} + 2 \tau_{2t} \bm{X}^\top \bm{p}_{2t}$.
 
 \subsubsection{Association testing}
 \label{sec:methods_assoc}
