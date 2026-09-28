@@ -1,0 +1,464 @@
+% Copyright (C) 2020-2024 by Thomas Auzinger <thomas@auzinger.name>
+
+\PassOptionsToPackage{dvipsnames,table}{xcolor} % Ensure that the document loads packages with all required options.
+\documentclass[draft,final]{istaustriathesis}
+
+% Set the copyright license. The possible choices are 'restricted' to reserve all rights or a Creative Commons license.
+% See https://creativecommons.org/choose/ for information on choosing a license.
+% The supported Creative Commons licenses are 'cc-by', 'cc-by-sa', 'cc-by-nd', 'cc-by-nc', 'cc-by-nc-sa', and 'cc-by-nc-nd'.
+\setlicense{restricted} % Choose 'restricted' or any of the 'cc-by...'.
+% If a Creative Commons license is chosen, the corresponding license information can be added to the PDF metadata.
+% For this, the package 'doclicense' needs to be uncommented below.
+% Furthermore, the 'modifier' option of 'doclicense' needs to mirror the chosen Creative Commons license.
+\usepackage[type={CC},modifier={by-nc-sa},version={4.0},hyperxmp=false]{doclicense} % Sets the license metadata. See copyright licensing below.
+% If no Creative Commons license is chosen, then the appropriate copyright text and (potentially empty) URL must be entered manually.
+% For this, edit the command \Copyright{...} and \CopyrightURL{...} in the filecontents* environment of \jobname.xmpdata below.
+
+% The pdfx package throws an error when utilizing the \xspace command inside the XMP metadata generation.
+% Since \xspace is utilized by the \doclicenseLongTextForHyperref command of the doclicense package, a workaround is implemented below.
+% It defines a \doclicenseLongTextForHyperrefFixed command that can be used instead of \doclicenseLongTextForHyperref.
+\begingroup
+\renewcommand{\xspace}{\space} % Temporarily replace \xspace with \space.
+\xdef\doclicenseLongTextForHyperrefFixed{\doclicenseLongTextForHyperref} % Expand the \doclicenseLongTextForHyperref and define the fixed version globally.
+\endgroup
+
+% Define convenience functions to use the author name and the thesis title in the PDF document properties.
+\newcommand{\authorname}{Al Depope} % The author name without titles.
+\newcommand{\displaythesistitle}{From Sparse Selection \\ to Risk Prediction: \\ Approximate Message Passing for \\ Proteomic Survival Models and Large-Scale Genomics}
+\newcommand{\thesistitle}{From Sparse Selection to Risk Prediction: Approximate Message Passing for Proteomic Survival Models and Large-Scale Genomics}
+% \newcommand{\thesistitle}{From Sparse Selection to Risk Prediction: Approximate Message Passing for Proteomics Survival Models and Large-Scale Genomics} % The title of the thesis.
+\newcommand{\issn}{2663-337X} % Standard ISSN of all ISTA PhD theses.
+% \newcommand{\isbn}{978-0-00000-000-0} % Leave empty if no ISBN is used.
+\newcommand{\isbn}{} % Leave empty if no ISBN is used.
+% Please contact IST Library library@ist.ac.at if you want to register an ISBN for your thesis.
+
+\providecommand{\bmhead}[1]{\section*{#1}}
+
+\setstocksize{240mm}{170mm}
+\settrimmedsize{\stockheight}{\stockwidth}{*}
+\setbinding{10mm} % Adds 1cm of "dead space" to the spine for the glue
+\setlrmarginsandblock{15mm}{20mm}{*} % {inner}{outer}{ratio}
+\setulmarginsandblock{25mm}{20mm}{*} % {top}{bottom}{ratio}
+\checkandfixthelayout
+
+% Approximate Message Passing for Biomarker Discovery and Prognosis in Proteomics Survival Models and Large-Scale Genomics
+% From Sparse Selection to Risk Prediction: Approximate Message Passing for Proteomics Survival Models and Large-Scale Genomics
+% Approximate Message Passing for Proteomics Survival Models and Large-Scale Genomics
+
+% Create the XMP metadata file for the creation of PDF/A compatible documents.
+\begin{filecontents*}[overwrite]{\jobname.xmpdata}
+\Author{\authorname}                                    % The author's name in the document properties.
+\Title{\thesistitle}                                    % The document's title in the document properties.
+\Language{en-US}                                        % The document's language in the document properties. Select 'en-US' or 'en-GB'.
+\Keywords{a\sep list\sep of\sep keywords}               % The document's keywords in the document properties (separated by '\sep ').
+\Publisher{Institute of Science and Technology Austria} % The document's publisher in the document properties.
+\Subject{PhD Thesis}                                    % The document's subject in the document properties.
+\Copyright{\doclicenseLongTextForHyperrefFixed}         % The document's copyright message in the document properties.
+\CopyrightURL{\doclicenseURL}                           % The document's copyright URL in the document properties.
+\Copyrighted{True}
+\ISBN{\isbn}                                            % The document's ISBN in the document properties.
+\Journalnumber{\issn}                                   % The document's ISSN in the document properties.
+\end{filecontents*}
+
+% Extended LaTeX functionality is enabled by including packages with \usepackage{...}.
+\usepackage{algorithmic}
+\usepackage[english]{babel} % The language of the thesis. Use 'british' for British English.
+\usepackage[numbers]{natbib} % Extend bibliography management. "numbers" matches the alpha labels ([DBMR26]); without it natbib stops with an error on repeated compiles.
+\usepackage{nicematrix}
+\usepackage{float}
+\usepackage{bibentry}   % Provide full citation support for single references.
+\usepackage{amsmath}    % Extended typesetting of mathematical expression.
+\usepackage{amssymb}    % Provides a multitude of mathematical symbols.
+\usepackage{mathtools}  % Further extensions of mathematical typesetting.
+\usepackage{microtype}  % Small-scale typographic enhancements.
+\usepackage[inline]{enumitem} % User control over the layout of lists (itemize, enumerate, description).
+\usepackage{multirow}   % Allows table elements to span several rows.
+\usepackage{booktabs}   % Improves the typesetting of tables.
+\usepackage{subcaption} % Allows the use of subfigures and enables their referencing.
+\usepackage[ruled,linesnumbered,algochapter]{algorithm2e} % Enables the writing of pseudo code.
+\usepackage[dvipsnames,table]{xcolor} % Allows the definition and use of colors. This package has to be included before TikZ.
+\usepackage{nag}        % Issues warnings when best practices in writing LaTeX documents are violated.
+\usepackage{todonotes}  % Provides tooltip-like todo notes.
+\usepackage{morewrites} % Increases the number of external files that can be used.
+\usepackage{bm}
+\usepackage{amsthm}
+\usepackage{xurl}
+\newtheorem{lemma}{Lemma}
+\usepackage{caption}
+% All captions in 10pt (\small inside a caption also gives 10pt), so that the long
+% figure legends fit on the 170 x 240 mm page together with their figures.
+\DeclareCaptionFont{thesisfootnotesize}{\footnotesize\let\small\footnotesize}
+\captionsetup{font=thesisfootnotesize}
+% Second half of a legend that continues on the next page (\ContinuedFloat):
+% labelled "Figure 2.1 (continued):".
+\DeclareCaptionLabelFormat{continued}{#1~#2 (continued)}
+
+% Figure legend that can break across pages.  \caption always builds one
+% unbreakable box, so a full-width graphic with a long legend has to shrink to
+% keep both on the same page.  Here the legend is ordinary text instead: the
+% graphic stays at full width and the legend runs on to the next page.
+% Arguments: list-of-figures entry, legend, label.
+\newcommand{\breakablefigurecaption}[3]{%
+  \par\addvspace{\abovecaptionskip}%
+  \refstepcounter{figure}\label{#3}%
+  \addcontentsline{lof}{figure}{\protect\numberline{\thefigure}{#1}}%
+  \begingroup\footnotesize\let\small\footnotesize
+    \noindent\figurename~\thefigure: #2\par
+  \endgroup
+  \addvspace{\belowcaptionskip}\addvspace{\parskip}%
+}
+
+% Pseudocode that can break across pages (the construction first used for vampW):
+% caption between two rules, the algorithmic lines as normal text, a closing rule.
+% Arguments: list-of-algorithms entry, caption, label.
+\newenvironment{breakablealgorithm}[3]{%
+  \par\begingroup\vspace{1em}%
+  \noindent\begin{minipage}{\textwidth}%
+    \hrule height 0.8pt\vspace*{1pt}%
+    \captionsetup{type=algocf, font=normalsize, labelfont=bf, labelsep=colon, textfont=normalfont, justification=justified, singlelinecheck=false, skip=0pt, aboveskip=0pt, belowskip=0pt, margin={1.0em, 0pt}}%
+    \caption[#1]{#2}\label{#3}%
+    \vspace*{1pt}\hrule height 0.8pt
+  \end{minipage}\par
+  \vspace*{2pt}%
+  \begin{adjustwidth}{1.5em}{0pt}% indent the lines by 1.5em and narrow them accordingly
+}{%
+  \end{adjustwidth}%
+  \par\nopagebreak\vspace*{2pt}\hrule height 0.8pt\vspace{1em}\endgroup
+}
+\usepackage{pdfpages}   % Inserts the front and back cover (graphics/covers/).
+\usepackage[a-2b,mathxmp]{pdfx}  % Enables PDF/A compliance. Loads the package hyperref and has to be included second to last.
+\usepackage[acronym,toc]{glossaries} % Enables the generation of glossaries and lists of acronyms. This package has to be included last.
+
+% Set PDF document properties
+\hypersetup{
+	pdfpagelayout   = OneColumn,            % How the document is shown in PDF viewers (optional).
+	linkbordercolor = {Melon},                 % The color of the borders of boxes around hyperlinks (optional).
+}
+
+\setpnumwidth{2.5em}        % Avoid overfull hboxes in the table of contents (see memoir manual).
+\setlength{\cftbeforechapterskip}{0.6em plus 1pt} % Less space above chapter entries (memoir default 1em), so the table of contents fits on two pages instead of putting its last entry (Appendix D) alone on a third.
+\setsecnumdepth{subsection} % Enumerate subsections.
+
+\nonzeroparskip             % Create space between paragraphs (optional).
+% Chapter/appendix number: memoir's veelo style puts it (18 mm tall) in the outer margin,
+% where the wide letters A, B, C reach the trimmed page edge. Keep its size, but end it
+% at the right edge of the text block, after "CHAPTER"/"APPENDIX".
+\renewcommand*{\printchapternum}{\hspace{.3em}\resizebox{!}{\beforechapskip}{\chapnumfont\thechapter}}
+\raggedbottom               % Leftover space on a page goes to the bottom (like a \vfill there) instead of stretching the gaps between paragraphs and headings.
+\setlength{\parindent}{0pt} % Remove paragraph indentation (optional).
+\setlength{\marginparwidth}{2cm} % Silences a todonotes warning; the thesis has no margin notes.
+\setlength{\emergencystretch}{3em} % Lets TeX break difficult paragraphs in the narrow 125 mm column instead of overfilling a line.
+
+\nobibliography* % Allow the use of full citation in the list of publications.
+
+\makeindex      % Use an optional index.
+\makeglossaries % Use an optional glossary.
+%\glstocfalse   % Remove the glossaries from the table of contents.
+
+% Comment the following line to switch the document to a serif font, i.e., Latin Modern Roman
+% (see https://tug.org/FontCatalogue/latinmodernroman/)
+% \renewcommand{\familydefault}{\sfdefault} % Switch document to sans serif font, i.e., Latin Modern Sans.
+% (see https://tug.org/FontCatalogue/latinmodernsans/)
+
+% Set the page numbers to bottom centered.
+\makeevenfoot{plain}{}{\thepage}{} % For front and back matter.
+\makeoddfoot{plain}{}{\thepage}{} % For front and back matter.
+\makeevenfoot{Ruled}{}{\thepage}{} % For main matter.
+\makeoddfoot{Ruled}{}{\thepage}{} % For main matter.
+
+% Required data.
+\setthesis{phd} % Select 'master' or 'phd'.
+\settitle{\thesistitle}
+\setsubtitle{} % Comment this line if no subtitle is used.
+% If your subtitle contains commas, enclose it with additional curvy brackets (i.e., \setsubtitle{{subtitle text}}) or define it as a macro as done with \thesistitle.
+\setdate{2026}{06}{26} % Set signing date with 3 arguments: {day}{month}{year}.
+\setissn{\issn}
+% \setisbn{\isbn} % Comment this line if no ISBN is used.
+
+% Define convenience function for an ISTA affiliation.
+\newcommand{\istaustriaaffiliation}{ISTA, Klosterneuburg, Austria}
+
+% Set persons with 4 arguments:
+%  {title(s) before name}{name}{title(s) after name}{affiliation}
+%  where both titles are optional (i.e. can be given as empty brackets {}).
+% Some of the following persons are optional for Master's or PhD theses and can be commented if they do not apply.
+\setauthor{}{\authorname}{}{\istaustriaaffiliation}
+\setsupervisor{}{Prof. Matthew R. Robinson}{}{\istaustriaaffiliation}
+\setcosupervisor{}{Prof. Marco Mondelli}{}{\istaustriaaffiliation} % Optional for Master's and PhD theses.
+\setcommitteememberI{}{Prof. Dan Alistarh}{}{\istaustriaaffiliation}
+% \setcommitteememberII{}{Prof. Na Cai}{}{ETH Zurich, Zurich, Switzerland} % Optional for Master's thesis.
+\setcommitteememberII{}{Prof. Philip Schniter}{}{The Ohio State University, Columbus, USA} % Optional for Master's and PhD theses.
+%\setcommitteememberIIII{}{Name Surname}{}{Institution, Place, Country} % Optional for Master's and PhD theses.
+\setdefensechair{}{Prof. Matthew Kwan}{}{\istaustriaaffiliation} % Optional for Master's thesis.
+
+
+%------------------- Notation shortcuts -------------------------------%
+\def\ba{{\boldsymbol a}}
+\def\beps{{\boldsymbol \epsilon}}
+\def\bA{{\boldsymbol A}}
+\def\bI{{\boldsymbol I}}
+\def\bSigma{{\boldsymbol \Sigma}}
+\def\bO{{\boldsymbol O}}
+\def\bD{{\boldsymbol D}}
+\def\bQ{{\boldsymbol Q}}
+\def\bLambda{{\boldsymbol \Lambda}}
+\def\blambda{{\boldsymbol \lambda}}
+\def\by{{\boldsymbol y}}
+\def\bx{{\boldsymbol x}}
+\def\bY{{\boldsymbol Y}}
+\def\bX{{\boldsymbol X}}
+\def\bW{{\boldsymbol W}}
+
+\newcounter{suppnotegvamp}
+
+% for vampW to work perfectly, the following commands need to be defined. They are used to keep track of the number of supplementary notes in the main text and to refer to them in the appendix.
+\usepackage{booktabs}
+\let\botrule\bottomrule
+\DeclareOldFontCommand{\bf}{\normalfont\bfseries}{\mathbf}
+\DeclareOldFontCommand{\rm}{\normalfont\rmfamily}{\mathrm}
+\DeclareOldFontCommand{\it}{\normalfont\itshape}{\mathit}
+\DeclareOldFontCommand{\sf}{\normalfont\sffamily}{\mathsf}
+\DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
+\DeclareMathOperator*{\argmax}{arg\,max}
+% memoir's \changed{...} is a change-mark command that prints nothing unless change marks
+% are switched on; the text wrapped in it (4 sentences in Chapter 3, legend of Figure C.8) must print.
+\renewcommand{\changed}[1]{#1}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% FRONT MATTER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frontmatter % Switch to roman page numbering and prevent chapter numbering.
+\pagestyle{plain} % Set simple page numbering.
+\pagenumbering{gobble}
+% Front cover, followed by its blank inside page, so that the title page stays a
+% right-hand (odd) page.
+\includepdf[pages=1]{graphics/covers/front_light_green_170x240.pdf}
+\begingroup\pagestyle{empty}\null\clearpage\endgroup
+% The structure of the thesis has to conform to the guidelines at
+%  https://phd.pages.ist.ac.at/student-resources/.
+
+\settitle{\displaythesistitle}
+% Title page scaled to the 170 x 240 mm page (about 81% of A4): every font size one
+% step smaller, smaller vertical gaps and a 4 cm logo, so that it fits on one page.
+% The title keeps the line breaks it had on A4.
+\begingroup
+\makeatletter
+\renewcommand{\istaustriathesis@Huge}{\LARGE}
+\renewcommand{\istaustriathesis@Large}{\large}
+\renewcommand{\istaustriathesis@large}{\normalsize}
+\setlength{\istaustriathesis@bigskipamount}{4ex}
+\renewcommand{\istaustriathesis@graphics@logo}{\includegraphics[width=4cm]{ISTA_black_vector.pdf}}
+\makeatother
+\addtitlepage
+\endgroup
+\settitle{\thesistitle} 
+
+\addcommitteepage
+\addstatementpage
+
+% \addtitlepage
+% \addcommitteepage
+% \addstatementpage
+
+\pagenumbering{roman} % Start page numbering.
+% single nucleotide polymorphisms (SNPs)
+\begin{abstract}
+% Uncovering the genetic architecture of complex traits and pinpointing causal molecular drivers require the ability to distinguish true signals from noise within massive, high-dimensional omics datasets. To extract meaningful biological insights from these datasets, such as identifying causal genetic variants and proteins, scalable and accurate inference methods are essential. To this end, this thesis develops novel Bayesian inference frameworks based on Vector Approximate Message Passing and demonstrates their effectiveness in the modeling of disease onset times and quantitative physical and clinical measures.
+
+% First, we introduce gVAMP, a Bayesian framework tailored for Genome-Wide Association Studies that enables the joint modeling of quantitative complex traits across millions of genetic variants. gVAMP demonstrates superior accuracy in variable selection and out-of-sample polygenic risk prediction compared to state-of-the-art approaches. We model human height using 17 million whole-genome sequence variants from the UK Biobank, incorporating a vast number of rare variants and revealing novel associations. gVAMP achieves a prediction accuracy of approximately 46\% for human height, representing the highest reported performance for this trait to date. 
+
+% Second, we present vampW, a Bayesian framework for survival analysis applied to proteomic data. By effectively handling right-censoring and complex protein dependencies within the UK Biobank Pharma Proteomics Project dataset, vampW identifies 219 protein associations across 24 disease outcomes, the majority of which are not among the top marginal discoveries. We further adjust protein levels for exponential age effects, yielding 1,308 associations and highlighting the sensitivity of the analysis to the chosen age-correction methodology. Finally, vampW improves upon the variable selection capabilities of the commonly used (penalized) variants of the Cox proportional hazards model and delivers state-of-the-art out-of-sample prediction of disease onset times.
+
+% Collectively, these methods provide powerful tools for dissecting the genetic architecture of complex traits and the proteomic drivers of disease onset. Furthermore, by delivering accurate polygenic risk scores and precise predictions of onset times, this work advances the capabilities of personalized medicine and clinical risk stratification.
+
+Uncovering the genetic architecture of complex traits and pinpointing causal molecular drivers require the ability to distinguish true signals from noise within massive, high-dimensional omics datasets. To extract meaningful biological insights from these datasets, such as identifying causal genetic variants and proteins, scalable and accurate inference methods are essential. To this end, this thesis develops novel Bayesian inference frameworks based on Vector Approximate Message Passing (VAMP) and demonstrates their effectiveness in modeling disease onset times, as well as quantitative physical and clinical measures.
+
+First, we introduce gVAMP, a Bayesian framework tailored for genome-wide association studies that enables the joint modeling of quantitative complex traits across millions of genetic variants. gVAMP demonstrates superior accuracy in variable selection and out-of-sample polygenic risk prediction compared to state-of-the-art approaches. We model human height using 17 million whole-genome sequence variants from the UK Biobank, incorporating a vast number of rare variants and revealing novel associations. gVAMP achieves a prediction accuracy of approximately 46\% for human height, representing the highest reported performance for this trait to date.
+
+Second, we present vampW, a Bayesian framework for survival analysis applied to proteomic data. By effectively handling right-censoring and complex protein dependencies within the UK Biobank Pharma Proteomics Project dataset, vampW identifies 219 protein associations across 24 disease outcomes, the majority of which are not among the top marginal discoveries. It improves upon the variable selection capabilities of the commonly used (penalized) variants of the Cox proportional hazards model and delivers state-of-the-art, out-of-sample prediction of disease onset times.
+
+Collectively, these methods provide powerful tools for dissecting the genetic architecture of complex traits and the proteomic drivers of disease onset. Furthermore, by delivering accurate risk scores, this work advances the capabilities of personalized medicine and clinical risk stratification.
+
+\end{abstract}
+
+% The Acknowledgement chapter is optional and can be removed.
+\begin{acknowledgements}
+I would like to thank many people with whom I have scientifically and personally interacted
+over the last five and a half years at the Institute. Firstly, I thank my supervisors, Matt Robinson and Marco Mondelli, 
+for coming up with an interesting interdisciplinary project and giving me the opportunity to pursue it.
+I also thank my lab colleagues for all the nice discussions, walks, and lunches. Finally, I want to thank Philip Schniter and Dan Alistarh for agreeing to join my thesis committee, and, together with Matthew Stephens, for providing fruitful feedback over the years.
+
+There is also life outside of scientific work, and I would really like to thank the following people 
+who have impacted my life in the most positive way over the past few years:
+\begin{itemize}
+\item Marta, my sister Nika, and my parents for always being there for me.
+\item My late grandfather Frenki for his love and constant sense of pride in me, despite the fact that he did not understand most of the things I was working on.
+% \item My other grandparents, Cecilija, Danica, and Miodrag, and my uncle Darko, for their continuous love and support.
+\item My grandparents Cecilija, Danica, and Miodrag, and my uncle Darko, for their support.
+\item Jakub and Ilse for all the inside jokes and brightening many of the days up.
+\item Lucija, Borna, Lovro, and Dorotea for their friendship.
+\end{itemize}
+\bigskip\bigskip
+% \section*{Funding acknowledgements}
+% \vspace{5pt}
+% This work was supported in part by the Swiss National Science Foundation through the Eccellenza Grant "Improving estimation and prediction of common complex disease risk" (grant number PCEGP3\_181181); the European Research Council through the grant "Inference in High Dimensions: Light-speed Algorithms and Information Limits" (grant number 101161364); and the Fondation Jean-Jacques et Felicia Lopez-Loreta through the Prix Lopez-Loretta 2019.
+\end{acknowledgements}
+
+\begin{aboutauthor}
+% \todo[inline]{
+	% Include paragraph of text summarizing your educational background, your academic profile (e.g. relevant research projects or work experience, list of publications), to give readers a snapshot idea of you as a person/academic.
+	% It is not meant to be a CV in the sense that it is not intended for job applications.
+	% This means things like your email address, your nationality, your current address, etc., should be left out.}
+% \todo[inline,color=white]{
+    Al Depope completed his BSc in Mathematics and MSc in Mathematical Statistics at the University of Zagreb before joining the Institute of Science and Technology Austria (ISTA) in September 2020. His primary research interests focus on the development of scalable inference methods and their applications in genomics and proteomics. During his doctoral studies, he developed the scientific software gVAMP, a high-dimensional tool capable of jointly analyzing millions of genetic variants. This work was published in Cell Genomics. Al has presented his research at international venues, including the ICASSP 2024 conference in South Korea and the European Mathematical Genetics Meeting 2024, where he received the Best Student Presentation Award. In his free time, he enjoys running and hiking.
+	% Al Depope completed his BSc in Mathematics and MSc in Mathematical Statistics at the University of Zagreb before joining the Institute of Science and Technology Austria (ISTA) in September 2020. His primary research interests focus on the development of scalable inference methods and their applications in genomics. During his doctoral studies, alongside other projects, he developed the scientific software gVAMP, a high-dimensional tool capable of jointly analyzing millions of genetic variants. These findings were published in \textit{Cell Genomics}. Al has presented his research at international venues, including the ICASSP 2024 conference in South Korea and the European Mathematical Genetics Meeting, where he received the Best Student Presentation Award. In his free time, he enjoys running and hiking. %}
+\end{aboutauthor}
+
+\begin{publicationlist}  % Remove if not applicable for a Master's thesis.
+% \todo[inline]{
+% 	Specify all co-authors and collaborator contributions to this thesis.
+% 	See the \href{https://phd.pages.ist.ac.at/graduate_school_guidelines_for_thesis_submission/}{Guidelines for Thesis Submission} for details.
+% }
+\begin{itemize}
+    % \item \textbf{Chapter 2} is based on the following two publications, with only minor modifications in format and wording:
+    
+    \item \textbf{Chapter 2} is based on the following publication, with only minor modifications:
+
+    % \begin{itemize}
+
+        % \item 
+        \bibentry{Depope2026}
+        % Depope, A., Bajzik, J., Mondelli, M., and Robinson, M.R. (2026). Joint modeling of whole-genome sequencing data for human height via approximate message passing. Cell Genomics 6, doi: 10.1016/j.xgen.2026.101162.
+
+        \vspace{5pt}   
+
+        % \bibentry{depope_joint_2023} 
+        in which MM and MRR conceived the study. AD, MM and MRR designed the study. AD derived the model and the algorithm, with input  from MM and MRR. AD wrote the software, with input from MM and MRR. AD, JB, MM, and MRR conducted the analysis and wrote the paper. All authors approved the final manuscript prior to submission. 
+
+    % \end{itemize}
+
+    % \item \textbf{Chapter 3} uses full preprint, with minor modifications of format and wording:
+    
+    % Jakub Bajzik*, Al Depope*, Yasaman Zolfimoselo, Alexander Sharipov, Holger Klein, Marco Mondelli, Matthew R. Robinson. Joint Variable Selection in Proteomics Survival Models, \textit{Preprint}, 2026. 
+    % \vspace{5pt}   
+
+    \item \textbf{Chapter 3} is based on the following manuscript, which has been accepted for the ICLR 2026 Workshop on Machine Learning for Genomics Explorations:
+    
+    \bibentry{bajzik2026joint}
+    \vspace{5pt}   
+    
+    in which AD, MM and MRR conceived the study. AD, JB, MM and MRR designed the study. AD derived the model and the algorithm, with contributions from AS, JB, YZ, MM and MRR. JB, AD, and YZ prepared the data. JB, AD, YZ and AS wrote the software, and conducted the analyses. MM and MRR provided study oversight. JB, AD, MM and MRR wrote the paper. All authors approved the final manuscript prior to submission.
+\end{itemize}
+
+During his PhD, Al Depope also authored the following publication, which is not included in this thesis: 
+
+\vspace{5pt}
+% \item 
+\bibentry{DepopeICASSP24}
+    % \nocite{DepopeICASSP24}
+    % A. Depope, M. Mondelli and M. R. Robinson, "Inference of Genetic Effects via Approximate Message Passing," ICASSP 2024 - 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Seoul, Korea, Republic of, 2024, pp. 13151-13155, doi: 10.1109/ICASSP48485.2024.10447198. 
+
+    \vspace{5pt}    
+
+    in which MM and MRR conceived the study. AD, MM and MRR designed the study. AD derived the model and the algorithm, with input  from MM and MRR. AD wrote the software, with input from MM and MRR. AD, MM, and MRR conducted the analysis and wrote the paper. All authors approved the final manuscript prior to submission. 
+
+% \todo[inline,color=white]{
+% 	Use the \texttt{\textbackslash bibentry} command to produce a full citation:
+% }
+% \bibentry{Turing1936} % Exemplary full citation.
+\end{publicationlist}
+
+\begin{ethicalstatement}
+% % These projects were realized using UK Biobank data under project number 35520. UK Biobank genotypic and phenotypic data is available through a formal request at \url{http://www.ukbiobank.ac.uk}. The UK Biobank has ethics approval from the North West Multi-centre Research Ethics Committee (MREC). Methods were carried out in accordance with the relevant guidelines and regulations, with informed consent obtained from all participants. Informed consent for all All of Us participants is conducted in person or through an eConsent platform that includes primary consent, HIPAA Authorization for Research use of electronic health records and other external health data, and Consent for Return of Genomic Results. The protocol was reviewed by the Institutional Review Board (IRB) of the All of Us Research Program. The All of Us IRB follows the regulations and guidance of the NIH Office for Human Research Protections for all studies, ensuring that the rights and welfare of research participants are overseen and protected uniformly.
+Projects presented in this thesis were realized utilizing data from the UK Biobank and the \textit{All of Us} Research Program. UK Biobank data was accessed under project number 35520, and its genotypic and phenotypic data are available through a formal request at \url{http://www.ukbiobank.ac.uk}. The UK Biobank has ethics approval from the North West Multi-centre Research Ethics Committee (MREC).
+
+Across both datasets, all methods were carried out in accordance with the relevant guidelines and regulations, with informed consent obtained from all participants. Specifically, informed consent for all \textit{All of Us} participants is conducted in person or through an eConsent platform that includes primary consent, HIPAA Authorization for the research use of electronic health records and other external health data, and Consent for the Return of Genomic Results. The protocol was reviewed by the Institutional Review Board (IRB) of the \textit{All of Us} Research Program. The \textit{All of Us} IRB follows the regulations and guidance of the NIH Office for Human Research Protections for all studies, ensuring that the rights and welfare of research participants are overseen and protected uniformly.
+\end{ethicalstatement}
+
+\cleardoublepage
+\renewcommand{\contentsname}{Table of Contents} % Specify chapter heading for table of contents.
+\tableofcontents
+\cleardoublepage
+\listoffigures
+
+
+% Create a group and deactivate all page breaks and blank pages.
+% This puts the lists of figures, tables, etc. on the same pages.
+% To reintroduce page breaks or blank pages, take the lists out of the group.
+\begingroup % Starting a group keeps the deactivations restricted to the group.
+\let\newpage\relax
+\let\clearpage\relax
+\let\cleardoublepage\relax
+
+\listoftables
+\listofalgorithms\addcontentsline{toc}{chapter}{List of Algorithms}
+\printglossary[title={List of Terms}]
+\printglossary[type=\acronymtype,title={List of Abbreviations}]
+\endgroup % End the deactivation group.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% MAIN MATTER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mainmatter % Switch to Arabic page and chapter numbering.
+\pagestyle{Ruled} % Show chapter and section name at the top of the page.
+%\pagestyle{plain} % Alternative page style without the names at the top.
+
+\input{chapter_Background.tex}
+
+% REMOVE THE FOLLOWING LINE IN THE FINAL VERSION OF THE THESIS.
+% \input{intro.tex} % A short introduction to LaTeX.
+
+\input{chapter_gVAMP.tex}
+
+\input{chapter_vampW.tex}
+
+\input{chapter_Conclusion.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% BACK MATTER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\backmatter
+\pagestyle{plain}
+
+\bibliographystyle{alpha-max4} % alpha, but at most 4 authors per entry, then "et al." (alpha-max4.bst).
+\renewcommand{\bibname}{References}
+\bibliography{thesis, chapter_Background, chapter_gVAMP, chapter_vampW, chapter_Conclusion, intro} % Add the bibliography file (intro.bib in this case).
+
+\mainmatter* % Remove this line to prevent numbering of appendix chapters.
+\appendix % Number appendix chapters with letters instead of numbers.
+
+\input{chapter_Background_Appendix.tex}
+
+\input{chapter_gVAMP_Appendix.tex}
+
+\input{chapter_vampW_Appendix.tex}
+
+% The declaration follows Appendix C without a blank page and with a more compact
+% heading, so that it fits on one page.
+\begingroup
+\renewcommand{\clearforchapter}{\clearpage}
+\renewcommand*{\chapterheadstart}{}
+\renewcommand*{\afterchapternum}{\par\nobreak\vskip 12pt}
+\setlength{\afterchapskip}{20pt}
+\input{chapter_AI_Declaration.tex}
+\endgroup
+
+% Blank pages up to the back cover, which is the last page and a left-hand (even)
+% page: fill up to an odd page, then the blank inside of the back cover.
+\clearpage
+\begingroup
+\pagestyle{empty}
+\ifodd\value{page}\else\null\clearpage\fi
+\null
+\clearpage
+\endgroup
+\includepdf[pages=1]{graphics/covers/back_light_green_170x240.pdf}
+
+% \backmatter
+% REMOVE THE FOLLOWING THREE LINES IN THE FINAL VERSION OF THE THESIS.
+% \makeatletter\@todonotes@SetTodoListName{List of Todos}\makeatother % Set name of list of todos.
+% \todototoc % Add the list of todos to the table of contents.
+% \listoftodos % Add a list of all todos.
+
+\end{document}

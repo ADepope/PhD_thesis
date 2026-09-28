@@ -1,0 +1,40 @@
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.loa
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.bbl
+*.blg
+*.idx
+*.ist
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.acn
+*.acr
+*.alg
+*.mw
+*.xmpi
+*.xmpdata
+*.run.xml
+*.bcf
+main.pdf
+creationdate.lua
+creationdate.timestamp
+
+# ClaudePrism editor (build folder, undo history, page captures)
+.prism/
+.claudeprism/
+attachments/
+
+# OS files
+.DS_Store
+Thumbs.db

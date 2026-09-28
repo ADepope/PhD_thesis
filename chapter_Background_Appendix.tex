@@ -1,0 +1,92 @@
+\chapter{Appendix for Chapter 1}
+\label{Background_Appendix}
+
+\begin{lemma}[Bound on the Bayesian False Discovery Rate, adapted from \cite{Muller2004}]
+Let $D$ be the observed GWAS data and $\mathcal{S}$ be a non-empty set of genetic variants selected as putative discoveries, with cardinality $|\mathcal{S}| > 0$. For every $j\in \mathcal{S}$, let $z_j \in \{0, 1\}$ be the unobserved, true causal indicator for variant $j$, and let $\text{PIP}_j = \mathbb{P}(z_j = 1 \mid D)$ be its \gls{pip}. Denoting the Bayesian False Discovery Rate of the set $\mathcal{S}$ as $\text{bFDR}(\mathcal{S})$, the following holds:
+
+If there exists a constant $c \in [0, 1]$ such that $\text{PIP}_j \ge c$ for all variants $j \in \mathcal{S}$, then $\text{bFDR}(\mathcal{S}) \le 1 - c$.
+\end{lemma}
+
+\begin{proof}
+The False Discovery Proportion (FDP) for the set $\mathcal{S}$ is defined as the empirical fraction of false discoveries:
+\[
+\text{FDP}(\mathcal{S}) = \frac{1}{|\mathcal{S}|} \sum_{j \in \mathcal{S}} (1 - z_j)
+\]
+
+The Bayesian False Discovery Rate ($\text{bFDR}$) is the posterior expectation of the FDP given the observed data $D$:
+\[
+\text{bFDR}(\mathcal{S}) = \mathbb{E}[\text{FDP}(\mathcal{S}) \mid D] = \mathbb{E} \left[ \frac{1}{|\mathcal{S}|} \sum_{j \in \mathcal{S}} (1 - z_j) \biggm| D \right]
+\]
+
+By the linearity of the expectation operator, we can move the expectation inside the summation. Furthermore, because $z_j$ is a Bernoulli random variable (taking values $0$ or $1$), its expected value is equal to its probability of being equal to $1$:
+\[
+\mathbb{E}[z_j \mid D] = P(z_j = 1 \mid D) = \text{PIP}_j
+\]
+
+Substituting this into the $\text{bFDR}$ equation yields:
+\begin{align*}
+\text{bFDR}(\mathcal{S}) &= \frac{1}{|\mathcal{S}|} \sum_{j \in \mathcal{S}} \mathbb{E}[(1 - z_j) \mid D] \\
+&= \frac{1}{|\mathcal{S}|} \sum_{j \in \mathcal{S}} (1 - \mathbb{E}[z_j \mid D]) \\
+&= \frac{1}{|\mathcal{S}|} \sum_{j \in \mathcal{S}} (1 - \text{PIP}_j)
+\end{align*}
+
+% -\text{PIP}_j &\le -c \\
+Assume the premise of the lemma: for all $j \in \mathcal{S}$, $\text{PIP}_j \ge c$. It follows that:
+\begin{align*}
+1 - \text{PIP}_j &\le 1 - c
+\end{align*}
+
+We substitute this inequality into the simplified $\text{bFDR}$ equation:
+\[
+\text{bFDR}(\mathcal{S}) \le \frac{1}{|\mathcal{S}|} \sum_{j \in \mathcal{S}} (1 - c)
+\]
+
+Since $(1 - c)$ is a constant with respect to the summation index $j$, summing it $|\mathcal{S}|$ times yields:
+\begin{align*}
+% \text{bFDR}(\mathcal{S}) &\le \frac{1}{|\mathcal{S}|} \times |\mathcal{S}| \times (1 - c) \\
+\text{bFDR}(\mathcal{S}) &\le 1 - c
+\end{align*}
+\end{proof}
+
+\newpage
+
+\begin{breakablealgorithm}{Expectation-Maximization Vector Approximate Message Passing for Generalized Linear Models}{Expectation-Maximization Vector Approximate Message Passing for Generalized Linear Models \cite{schniter_vector_2016,emGVAMP2018}.}{EMVAMP-GLM}
+    \begin{algorithmic}[1]
+        \STATE {\bfseries Input:} design matrix $\bm{X} \in \mathbb{R}^{N \times P}$, observed vector of outcomes $\mathbf{y} \in \mathbb{R}^N$, number of iterations $N_{\text{it}}$, initial estimate of effect sizes $\bm{r}_{1,0} \in \mathbb{R}^P$, initial effect size precision $\gamma_{1,0} \ge 0$, initial estimate of linear predictor $\bm{p}_{1,0} \in \mathbb{R}^N$, initial linear predictor precision $\tau_{1,0} \ge 0$, initial prior parameters $\Theta_{0}$ belonging to a space of prior parameters $\bm{\Theta}$, initial observation model parameters $\Phi_{0}$ belonging to a space of model parameters $\bm{\Phi}$, and denoisers $g_1 : \mathbb{R} \times \mathbb{R} \times \bm{\Theta} \to \mathbb{R}$ and $g_2 : \mathbb{R} \times \mathbb{R} \times \mathbb{R} \times \bm{\Phi} \to \mathbb{R}$ satisfying: $g_1$ and $g_2$ are separable with identical Lipschitz components applied elementwise, i.e., $[g_1(\bm{r}, \gamma, \Theta)]_n = g_1(r_n, \gamma, \Theta)$ $\forall n$ and $[g_2(\bm{p}, \tau, \mathbf{y}, \Phi)]_n = g_2(p_n, y_n, \tau, \Phi)$ $\forall n$.
+        \FOR{$t = 0, 1,\dots, N_{\text{it}}$}
+
+            \STATE {\bfseries Prior denoising step}
+            \STATE EM update of the prior distribution parameters $\Theta \in \bm{\Theta}$, called $\Theta_t$
+            \STATE $\hat{\bm{\beta}}_{1,t} = g_{1}(\bm{r}_{1,t}, \gamma_{1,t}, \Theta_t)$
+            \STATE $\alpha_{1,t} = \gamma_{1,t} \cdot \langle g_{1}'(\bm{r}_{1,t}, \gamma_{1,t}, \Theta_t) \rangle$
+            \STATE $\gamma_{2,t} = \gamma_{1,t} \cdot (1 - \alpha_{1,t}) / \alpha_{1,t}$
+            \STATE $\bm{r}_{2,t} = (\hat{\bm{\beta}}_{1,t} - \alpha_{1,t} \bm{r}_{1,t}) / (1-\alpha_{1,t})$
+            \item[]
+
+            \STATE {\bfseries Observation model denoising step}
+            \STATE EM update of the observation model parameters $\Phi \in \bm{\Phi}$, called $\Phi_t$
+            \STATE $\hat{\bm{z}}_{1,t} = g_{2}(\bm{p}_{1,t}, \tau_{1,t}, \mathbf{y}, \Phi_t)$
+            \STATE $\upsilon_{1,t} = \tau_{1,t} \cdot \langle g_{2}'(\bm{p}_{1,t}, \tau_{1,t}, \mathbf{y}, \Phi_t) \rangle$
+            \STATE $\tau_{2,t} = \tau_{1,t} \cdot (1 - \upsilon_{1,t}) / \upsilon_{1,t}$
+            \STATE $\bm{p}_{2,t} = (\hat{\bm{z}}_{1,t} - \upsilon_{1,t} \bm{p}_{1,t}) / (1-\upsilon_{1,t})$
+            \item[]
+
+            \STATE {\bfseries LMMSE step for $\bm{\beta}$}
+            \STATE $\hat{\bm{\beta}}_{2,t} = ( \tau_{2,t} \bm{X}^\top\bm{X} + \gamma_{2,t} \bm{I} )^{-1} ( \tau_{2,t} \bm{X}^\top \bm{p}_{2,t} + \gamma_{2,t} \bm{r}_{2,t} )$
+            \STATE $\alpha_{2,t} = \gamma_{2,t} \cdot \mathrm{Tr}[(\tau_{2,t} \bm{X}^\top\bm{X} + \gamma_{2,t}\bm{I})^{-1}] / P$
+            \STATE $\gamma_{1,t+1} = \gamma_{2,t} \cdot (1-\alpha_{2,t}) / \alpha_{2,t}$
+            \STATE $\bm{r}_{1,t+1} = (\hat{\bm{\beta}}_{2,t} - \alpha_{2,t} \bm{r}_{2,t}) / (1-\alpha_{2,t})$
+            \item[]
+
+            \STATE {\bfseries LMMSE step for $\bm{z} = \bm{X}\bm{\beta}$}
+            \STATE $\hat{\bm{z}}_{2,t} = \bm{X} \hat{\bm{\beta}}_{2,t}$
+            \STATE $\upsilon_{2,t} = \tau_{2,t} \cdot \mathrm{Tr}[\bm{X}(\tau_{2,t} \bm{X}^\top\bm{X} + \gamma_{2,t}\bm{I})^{-1}\bm{X}^\top] / N$
+            \STATE $\tau_{1,t+1} = \tau_{2,t} \cdot (1-\upsilon_{2,t}) / \upsilon_{2,t}$
+            \STATE $\bm{p}_{1,t+1} = (\hat{\bm{z}}_{2,t} - \upsilon_{2,t} \bm{p}_{2,t}) / (1-\upsilon_{2,t})$
+
+        \ENDFOR
+        \STATE \textbf{return} $\hat{\bm{\beta}}_{1,t}$
+    \end{algorithmic}
+\end{breakablealgorithm}
+
+The prior denoising function is often chosen to minimize mean squared error: $g_{1}(\bm{r}, \gamma, \Theta) = \mathbb{E}[\bm{\beta} \mid \bm{r} = \bm{\beta} + \mathcal{N}(0, \gamma^{-1}\bm{I}), \gamma, \Theta]$ with derivative $g_{1}'(\bm{r}, \gamma, \Theta) = \gamma \cdot \mathrm{Var}[\bm{\beta} \mid \bm{r} = \bm{\beta} + \mathcal{N}(0, \gamma^{-1}\bm{I}), \gamma, \Theta]$. The observation model denoising function is analogously often used with $g_{2}(\bm{p}, \tau, \mathbf{y}, \Phi) = \mathbb{E}[\bm{z} \mid \bm{p} = \bm{z} + \mathcal{N}(0, \tau^{-1}\bm{I}), \mathbf{y}, \tau, \Phi]$ and derivative $g_{2}'(\bm{p}, \tau, \mathbf{y}, \Phi) =  \tau \cdot \mathrm{Var}[\bm{z} \mid \bm{p} = \bm{z} + \mathcal{N}(0, \tau^{-1}\bm{I}), \mathbf{y}, \tau, \Phi]$.
